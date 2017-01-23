@@ -43,8 +43,6 @@
                     <appendAssemblyId>false</appendAssemblyId>
                     <archive>
                         <manifest>
-                            <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
-                            <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
                             <mainClass>Importer</mainClass>
                             <addClasspath>true</addClasspath>
                         </manifest>
