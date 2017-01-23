@@ -12,6 +12,7 @@ import java.io.InputStream;
 import java.lang.invoke.MethodHandles;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -36,7 +37,7 @@ public class FileImporter {
     private HashMap<String, LinkedList<SensorValues>> availableSensorFormats = new HashMap<>();
 
     private String commentString = "#";
-    private String dateFormat = "dd-MM-yyyy";
+    private SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy");
     private String fieldSeparator = ";";
 
     /**
@@ -99,12 +100,15 @@ public class FileImporter {
 
             String[] heading = rows.get(i).split(fieldSeparator);
             if(heading.length == WEATHER_STATION_HEADING){
-                //get and skip header
+                //get header
                 station.setName(heading[0].trim());
                 int measureSize = Integer.parseInt(heading[1].trim());
-                i++;
 
-                for(int j=i; j<i+measureSize && j<rows.size(); j++){
+                //set cursor to weather station
+                int weatherStationCursor = i;
+
+                //loop on measures
+                for(int j=weatherStationCursor+1; j<weatherStationCursor+1+measureSize && j<rows.size(); j++){
                     consumeMeasures(station, rows.get(j));
                     i++;
                 }
@@ -118,43 +122,51 @@ public class FileImporter {
     }
 
     /**
-     * This method add Measure and FailedMeasure to weatherStation
+     * This method add Measure or FailedMeasure to weatherStation
      * @param weatherStation
      */
     private void consumeMeasures(WeatherStation weatherStation, String row){
-        //verify the count for a measure
         String[] data = row.split(fieldSeparator);
+
+        //there is always a value for data[0] because the row can't be null or empty
         String code = data[0];
         LinkedList<SensorValues> sensorValues = availableSensorFormats.get(code);
 
-        //TODO
-        Measure measure = new Measure(code);
-        if(data.length-1 == sensorValues.size()){
-            //start to 1 to skip code
-            int i=1;
-            for (SensorValues sensorValue : sensorValues) {
-                parseMeasure(sensorValue, data[i]);
-                i++;
+        if(sensorValues != null){
+            //verify the count for a measure
+            if(data.length-1 == sensorValues.size()){
+                //start i to 1 to skip sensor code
+                int i =1;
+                //try to create measure
+                try{
+                    Measure measure = new Measure(code);
+
+                    for (SensorValues sensorValue : sensorValues) {
+                        switch (sensorValue){
+                            case DATE:
+                                measure.setDate(dateFormat.parse(data[i]));
+                                break;
+                            case UNIT:
+                                measure.setUnit(data[i]);
+                                break;
+                            case VALUE:
+                                measure.setValue(Double.parseDouble(data[i]));
+                                break;
+                        }
+                        i++;
+                    }
+                    weatherStation.addMeasure(measure);
+
+                } catch(Exception e){
+                    weatherStation.addFailedMeasure(new FailedMeasure(row, sensorValues.toString(), "Unable to parse measure. Data type may be incorrect."));
+                    LOGGER.debug(e.getMessage());
+                }
+
+            } else {
+                weatherStation.addFailedMeasure(new FailedMeasure(row, sensorValues.toString(), "Incorrect parameter number."));
             }
         } else {
-            weatherStation.addFailedMeasure(new FailedMeasure(row, sensorValues.toString()));
-        }
-    }
-
-    /**
-     * This method try to parse measure.
-     * it should be like sensorValues
-     * If not, a failedMeasure is added to the weatherStation
-     */
-    private void parseMeasure(SensorValues sensorValue, String value){
-        //TODO
-        switch (sensorValue){
-            case DATE:
-                break;
-            case UNIT:
-                break;
-            case VALUE:
-                break;
+            weatherStation.addFailedMeasure(new FailedMeasure(row, "", "Unrecognized sensor type. " + code));
         }
     }
 
@@ -183,7 +195,7 @@ public class FileImporter {
 
             availableSensorFormats.put(sensorType, sensorValues);
         } else if (key.equals(DATE_PATTERN)) {
-            dateFormat = value;
+            dateFormat = new SimpleDateFormat(value);
         } else if (key.equals(SEPARATOR)){
             fieldSeparator = value;
         } else {

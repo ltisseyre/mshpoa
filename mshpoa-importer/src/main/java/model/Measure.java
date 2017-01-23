@@ -26,4 +26,24 @@ public class Measure {
     public void setDate(Date date) {
         this.date = date;
     }
+
+    public void setCode(String code) {
+        this.code = code;
+    }
+
+    public String getCode() {
+        return code;
+    }
+
+    public String getUnit() {
+        return unit;
+    }
+
+    public Double getValue() {
+        return value;
+    }
+
+    public Date getDate() {
+        return date;
+    }
 }

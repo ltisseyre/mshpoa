@@ -1,0 +1,19 @@
+#T -> min 10, max 40, avg 25
+#P -> min 999, max 1014, avg 1009.75
+#H -> min 1, max 30, avg 20,25
+
+Mont Aigoul,6
+T,C,20
+P,BAR,2014-11-01,1014
+H,25,
+T,C,30
+P,BAR,2014-11-02,1014
+H,30
+
+Clapiers,6
+P,BAR,2014-11-02,1012
+T,C,10
+T,C,40
+H,1
+P,BAR,2014-11-03,999
+H,25

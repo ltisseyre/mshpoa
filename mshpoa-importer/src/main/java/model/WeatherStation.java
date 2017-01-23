@@ -1,5 +1,6 @@
 package model;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -10,12 +11,33 @@ public class WeatherStation {
     List<Measure> measures;
     List<FailedMeasure> failedMeasures;
 
+    public WeatherStation() {
+        this.measures = new ArrayList<>();
+        this.failedMeasures = new ArrayList<>();
+    }
+
+    public List<FailedMeasure> getFailedMeasures() {
+        return failedMeasures;
+    }
+
+    public String getName() {
+        return name;
+    }
+
     public List<Measure> getMeasures() {
         return measures;
     }
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public void setMeasures(List<Measure> measures) {
+        this.measures = measures;
+    }
+
+    public void setFailedMeasures(List<FailedMeasure> failedMeasures) {
+        this.failedMeasures = failedMeasures;
     }
 
     public void addMeasure(Measure measure){
